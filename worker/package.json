@@ -3,9 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "build": "esbuild index.js --bundle --format=esm --platform=neutral --outfile=dist/index.js"
   },
   "dependencies": {
     "ical.js": "2.2.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
   }
 }

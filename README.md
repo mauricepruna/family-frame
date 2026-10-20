@@ -32,10 +32,15 @@ Events are credited to family members by finding their names in the event title 
 | `dashboard/` | The web UI (plain JS, built with Vite) and the Worker's deploy config |
 | `worker/` | Cloudflare Worker: access gate, `/api/calendar`, `/api/weather`, iCal parsing. Has tests |
 | `kiosk/` | Android app: a fullscreen WebView that opens the dashboard and survives reboots |
+| `terraform/` | OpenTofu/Terraform config to reproduce the Worker, assets and secrets in another Cloudflare account |
 
 ## Deploy the dashboard and Worker
 
 You need a free Cloudflare account and a recent Node (the dashboard uses Vite 8).
+
+To reproduce the Cloudflare side of this (Worker, assets, secrets) from scratch in a different
+account, see [`terraform/`](terraform/) instead — it's an OpenTofu/Terraform equivalent of the
+steps below.
 
 ```sh
 cd dashboard
@@ -43,6 +48,9 @@ npm install
 npx wrangler login
 npm run deploy          # builds the UI and deploys the Worker; prints your workers.dev URL
 ```
+
+There's also a [`justfile`](justfile) with shortcuts for the commands on this page — run
+`just --list` from the repo root (needs [`just`](https://github.com/casey/just)).
 
 Then set four secrets (each command prompts for the value, so nothing lands in shell history):
 

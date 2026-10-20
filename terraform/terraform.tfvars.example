@@ -1,0 +1,11 @@
+# Copy to terraform.tfvars (git-ignored) and fill in, or pass these as TF_VAR_* env vars instead
+# so nothing sensitive ever touches disk. Never commit terraform.tfvars.
+
+cloudflare_account_id = "<Dashboard > Workers & Pages > Overview, right sidebar>"
+workers_dev_subdomain = "<your-name>" # set once per account, same place
+worker_name           = "family-frame"
+
+access_key       = "<openssl rand -hex 24>"
+calendar_ics_url = "<Google Calendar > Settings > your calendar > Integrate calendar > Secret address in iCal format>"
+family_json      = "[{\"id\":\"p1\",\"name\":\"Ana\",\"match\":[\"ana\"]}]"
+home_latlon      = "<lat,lon of your town, e.g. 40.71,-74.01>"
