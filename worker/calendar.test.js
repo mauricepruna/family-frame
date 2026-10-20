@@ -86,3 +86,15 @@ test('attribute does not match inside other words', () => {
 test('unmatched events belong to the whole family', () => {
   assert.deepEqual(attribute({ title: 'Garbage night' }, PEOPLE), ['p1', 'p2', 'p3', 'p4']);
 });
+
+test('a weekly zoned series keeps its local time across the DST change', () => {
+  const out = parseEvents(ics(
+    'BEGIN:VEVENT\r\nUID:a7\r\nDTSTART;TZID=America/New_York:20261030T160000\r\nDTEND;TZID=America/New_York:20261030T170000\r\nRRULE:FREQ=WEEKLY;COUNT=3\r\nSUMMARY:Weekly\r\nEND:VEVENT\r\n'
+  ), { from: new Date('2026-10-29T00:00:00Z'), to: new Date('2026-11-20T00:00:00Z') });
+  // US daylight saving ends 2026-11-01: 4 PM is 20:00Z before it and 21:00Z after.
+  assert.deepEqual(out.map((e) => e.start), [
+    '2026-10-30T20:00:00.000Z',
+    '2026-11-06T21:00:00.000Z',
+    '2026-11-13T21:00:00.000Z'
+  ]);
+});

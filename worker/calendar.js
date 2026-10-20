@@ -3,34 +3,7 @@ import ICAL from 'ical.js';
 const MAX_OCCURRENCES = 1000;
 const DAY = 86400000;
 
-function wallClockToUtc(t, tzid) {
-  const wall = Date.UTC(t.year, t.month - 1, t.day, t.hour, t.minute, t.second);
-  const offsetAt = (ms) => {
-    const p = Object.fromEntries(
-      new Intl.DateTimeFormat('en-US', {
-        timeZone: tzid, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric',
-        hour: 'numeric', minute: 'numeric', second: 'numeric'
-      }).formatToParts(new Date(ms)).map((x) => [x.type, +x.value])
-    );
-    return Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second) - ms;
-  };
-  const first = wall - offsetAt(wall);
-  return new Date(wall - offsetAt(first));
-}
-
-function tzidOf(item) {
-  const p = item.component.getFirstProperty('dtstart');
-  return p ? p.getParameter('tzid') : null;
-}
-
-function isFloating(t) {
-  return !t.zone || t.zone === ICAL.Timezone.localTimezone || t.zone.tzid === 'floating';
-}
-
-function toIso(t, tzid) {
-  if (tzid && isFloating(t)) {
-    try { return wallClockToUtc(t, tzid).toISOString(); } catch { /* unknown zone name, fall through */ }
-  }
+function toIso(t) {
   return t.toJSDate().toISOString();
 }
 
@@ -49,8 +22,7 @@ function record(item, start, end, allDay) {
 
 function toRecord(item, startT, endT) {
   const allDay = startT.isDate;
-  const tzid = tzidOf(item);
-  return record(item, allDay ? startT.toString() : toIso(startT, tzid), allDay ? endT.toString() : toIso(endT, tzid), allDay);
+  return record(item, allDay ? startT.toString() : toIso(startT), allDay ? endT.toString() : toIso(endT), allDay);
 }
 
 function overlaps(r, from, to) {
