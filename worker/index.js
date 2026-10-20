@@ -1,5 +1,6 @@
 import { parseEvents, attribute } from './calendar.js';
 import { getPeople, publicPeople, DEFAULT_PEOPLE } from './family.js';
+import { parseLocation, forecastUrl, toDashboardWeather } from './weather.js';
 
 const COOKIE = 'ff_key';
 const YEAR = 31536000;
@@ -38,6 +39,19 @@ async function calendar(env) {
   }
 }
 
+async function weather(env) {
+  const where = parseLocation(env.HOME_LATLON);
+  if (!where) return Response.json({ error: 'HOME_LATLON is not configured' }, { status: 500 });
+  try {
+    const res = await fetch(forecastUrl(where), { cf: { cacheTtl: 900, cacheEverything: true } });
+    if (!res.ok) return Response.json({ error: 'weather upstream ' + res.status }, { status: 502 });
+    return Response.json(toDashboardWeather(await res.json()), { headers: { 'Cache-Control': 'no-store' } });
+  } catch (err) {
+    console.error('weather failed:', err && err.message);
+    return Response.json({ error: 'weather failed' }, { status: 502 });
+  }
+}
+
 export default {
   async fetch(request, env) {
     if (!env.ACCESS_KEY) return new Response('ACCESS_KEY is not configured', { status: 500 });
@@ -62,6 +76,7 @@ export default {
       if (!env.CALENDAR_ICS_URL) return Response.json({ error: 'CALENDAR_ICS_URL is not configured' }, { status: 500 });
       return calendar(env);
     }
+    if (url.pathname === '/api/weather') return weather(env);
     return env.ASSETS.fetch(request);
   }
 };

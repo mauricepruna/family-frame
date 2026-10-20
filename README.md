@@ -19,7 +19,8 @@ private calendar feed, access control, and keeps the family's details out of the
 | View | Data |
 | --- | --- |
 | Calendar, Today | **Real**: a Google Calendar via its private iCal link, recurring events included |
-| Chores, shopping, photos, home, weather | Demo data from the original prototype |
+| Weather | **Real**: [Open-Meteo](https://open-meteo.com) (free, no key), in °F and mph |
+| Chores, shopping, photos, home | Demo data from the original prototype |
 
 Events are credited to family members by finding their names in the event title or notes
 (`Dentist - Ana`). Events with no name belong to the whole family.
@@ -29,7 +30,7 @@ Events are credited to family members by finding their names in the event title 
 | Folder | What it is |
 | --- | --- |
 | `dashboard/` | The web UI (plain JS, built with Vite) and the Worker's deploy config |
-| `worker/` | Cloudflare Worker: access gate, `/api/calendar`, iCal parsing. Has tests |
+| `worker/` | Cloudflare Worker: access gate, `/api/calendar`, `/api/weather`, iCal parsing. Has tests |
 | `kiosk/` | Android app: a fullscreen WebView that opens the dashboard and survives reboots |
 
 ## Deploy the dashboard and Worker
@@ -43,14 +44,21 @@ npx wrangler login
 npm run deploy          # builds the UI and deploys the Worker; prints your workers.dev URL
 ```
 
-Then set three secrets (each command prompts for the value, so nothing lands in shell history):
+Then set four secrets (each command prompts for the value, so nothing lands in shell history):
 
 ```sh
 npx wrangler secret put ACCESS_KEY        # a long random string: openssl rand -hex 24
 npx wrangler secret put CALENDAR_ICS_URL  # Google Calendar > Settings > your calendar >
                                           # Integrate calendar > Secret address in iCal format
 npx wrangler secret put FAMILY_JSON       # see below
+npx wrangler secret put HOME_LATLON       # "lat,lon" of your town, e.g. 40.71,-74.01
 ```
+
+`HOME_LATLON` only needs to be accurate to the town (two decimals is about 1 km), so use a
+city-centre point, not your street address. Look one up with
+`https://geocoding-api.open-meteo.com/v1/search?name=<town>`. It stays a secret so your
+location isn't in the repository. To change units, edit `forecastUrl` in `worker/weather.js`
+(and the "cool" cutoff in `weatherNow` in `dashboard/js/app.js`, which is in °F).
 
 `CALENDAR_ICS_URL` is effectively a password: anyone holding it can read the whole calendar. It
 only ever lives as a Worker secret, never in the page, the app or this repository.
