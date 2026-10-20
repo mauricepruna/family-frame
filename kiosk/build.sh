@@ -4,6 +4,7 @@
 #   sdkmanager --sdk_root=$ANDROID_HOME "build-tools;34.0.0" "platforms;android-34"
 # Install on the tablet: adb install -r kiosk/build/homehq.apk
 # Optional: KIOSK_SITE=<dir> bundles a static site, served at http://127.0.0.1:8765/ (README).
+# Optional: KIOSK_URL=https://your-site/ sets the URL a fresh install opens (no key in it).
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -31,8 +32,21 @@ fi
 "$BT/aapt2" link -o build/base.apk -I "$JAR" --manifest AndroidManifest.xml ${ASSETS[@]+"${ASSETS[@]}"} build/res.zip \
   --java build/gen --min-sdk-version 23 --target-sdk-version 28 --version-code 2 --version-name 1.1
 
+SRCS=(src/com/wesbos/homehq/*.java)
+if [ -n "${KIOSK_URL:-}" ]; then
+  case "$KIOSK_URL" in https://*) ;; *) echo "KIOSK_URL must start with https://" >&2; exit 1 ;; esac
+  case "$KIOSK_URL" in *[\"\\\&\|\ ]*) echo "KIOSK_URL has a character that is not allowed" >&2; exit 1 ;; esac
+  # Substitute in a copy so the tracked source (and the repo) never contains your address.
+  mkdir -p build/src && cp src/com/wesbos/homehq/*.java build/src/
+  sed -i.bak "s|DEFAULT_URL = \"[^\"]*\"|DEFAULT_URL = \"$KIOSK_URL\"|" build/src/MainActivity.java
+  rm -f build/src/MainActivity.java.bak
+  grep -qF "DEFAULT_URL = \"$KIOSK_URL\"" build/src/MainActivity.java || { echo "could not set DEFAULT_URL" >&2; exit 1; }
+  SRCS=(build/src/*.java)
+  echo "Default URL: $KIOSK_URL"
+fi
+
 javac -nowarn -source 8 -target 8 -classpath "$JAR" -d build/classes \
-  src/com/wesbos/homehq/*.java build/gen/com/wesbos/homehq/R.java
+  "${SRCS[@]}" build/gen/com/wesbos/homehq/R.java
 
 "$BT/d8" --min-api 23 --lib "$JAR" --output build $(find build/classes -name '*.class')
 (cd build && zip -qj base.apk classes.dex)
