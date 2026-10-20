@@ -1,0 +1,11 @@
+{
+  "name": "family-frame-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "ical.js": "2.2.1"
+  }
+}

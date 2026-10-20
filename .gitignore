@@ -5,3 +5,4 @@ kiosk/build/
 .dev.vars
 *.apk
 backups/
+.secrets/
