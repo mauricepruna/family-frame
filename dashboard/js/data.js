@@ -242,7 +242,7 @@ window.DATA = (function () {
     { id: 'y-back', room: 'yard', type: 'lock', name: 'Back Door', locked: true },
     { id: 'y-flood', room: 'yard', type: 'light', name: 'Floodlight', on: false, level: 100 }
   ];
-  var climate = { current: 20.5, set: 21.5, mode: 'heat', humidity: 42, outside: 14 };
+  var climate = { current: 70, set: 72, mode: 'heat', humidity: 42, outside: 57 };
   var media = { room: 'Kitchen', title: 'Harvest Moon', artist: 'Neil Young', playing: true, volume: 35, seed: 'harvest-vinyl' };
   var cameras = [
     { id: 'c-front', name: 'Front Porch', seed: 'porch-steps' },

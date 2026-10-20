@@ -133,19 +133,20 @@
     var rainAt = -1;
     for (var i = h; i < 24; i++) if (W.p[i] >= 50) { rainAt = i; break; }
     var summary, advice;
+    var snowy = rainAt > -1 && W.c[rainAt] === 'snow';
     if (rainAt === h) {
       var stop = h; while (stop < 24 && W.p[stop] >= 50) stop++;
-      summary = 'Rain until ' + App.fmt.hour(new Date(2000, 0, 1, stop));
-      advice = 'Umbrella weather';
+      summary = (snowy ? 'Snow until ' : 'Rain until ') + App.fmt.hour(new Date(2000, 0, 1, stop));
+      advice = snowy ? 'Bundle up' : 'Umbrella weather';
     } else if (rainAt > -1) {
-      summary = 'Rain from ' + App.fmt.hour(new Date(2000, 0, 1, rainAt));
+      summary = (snowy ? 'Snow from ' : 'Rain from ') + App.fmt.hour(new Date(2000, 0, 1, rainAt));
       var soccer = App.timedOn(App.now()).filter(function (e) { return /soccer/i.test(e.title) && e.start > App.now(); })[0];
-      advice = soccer ? 'Pack a rain jacket for soccer' : 'Grab a rain jacket';
+      advice = snowy ? 'Boots and a warm coat' : soccer ? 'Pack a rain jacket for soccer' : 'Grab a rain jacket';
     } else {
-      summary = W.t[h] < 12 ? 'Clear and cool' : 'Dry all day';
-      advice = W.t[h] < 12 ? 'Jacket weather' : 'Light layers';
+      summary = W.t[h] < 54 ? 'Clear and cool' : 'Dry all day';
+      advice = W.t[h] < 54 ? 'Jacket weather' : 'Light layers';
     }
-    var labels = { sun: 'Sunny', moon: 'Clear', partly: 'Partly cloudy', cloud: 'Overcast', rain: 'Rain' };
+    var labels = { sun: 'Sunny', moon: 'Clear', partly: 'Partly cloudy', cloud: 'Overcast', rain: 'Rain', snow: 'Snow', storm: 'Storm' };
     return { temp: W.t[h], cond: W.c[h], label: labels[W.c[h]], hi: W.hi, lo: W.lo, summary: summary, advice: advice, hour: h };
   };
   App.hourly = function (count) {
