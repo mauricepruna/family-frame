@@ -1,1 +1,146 @@
 # family-frame
+
+A wall-mounted family dashboard for an old Android photo frame: today's schedule, calendar,
+chores, shopping, photos and weather on one screen, driven by your own data.
+
+It is built on [wesbos/photo-frame-dashboard](https://github.com/wesbos/photo-frame-dashboard)
+(MIT). That project is a polished prototype with mock data; this one adds a real backend, a
+private calendar feed, access control, and keeps the family's details out of the repository.
+
+```
+ Android frame ──► kiosk app ──► Cloudflare Worker ──► your calendar (private iCal link)
+ (WebView 106)    (fullscreen     │  serves the page
+                   browser)       │  /api/calendar
+                                  └─ everything behind an access key
+```
+
+## What works today
+
+| View | Data |
+| --- | --- |
+| Calendar, Today | **Real**: a Google Calendar via its private iCal link, recurring events included |
+| Chores, shopping, photos, home, weather | Demo data from the original prototype |
+
+Events are credited to family members by finding their names in the event title or notes
+(`Dentist - Ana`). Events with no name belong to the whole family.
+
+## Layout
+
+| Folder | What it is |
+| --- | --- |
+| `dashboard/` | The web UI (plain JS, built with Vite) and the Worker's deploy config |
+| `worker/` | Cloudflare Worker: access gate, `/api/calendar`, iCal parsing. Has tests |
+| `kiosk/` | Android app: a fullscreen WebView that opens the dashboard and survives reboots |
+
+## Deploy the dashboard and Worker
+
+You need a free Cloudflare account and a recent Node (the dashboard uses Vite 8).
+
+```sh
+cd dashboard
+npm install
+npx wrangler login
+npm run deploy          # builds the UI and deploys the Worker; prints your workers.dev URL
+```
+
+Then set three secrets (each command prompts for the value, so nothing lands in shell history):
+
+```sh
+npx wrangler secret put ACCESS_KEY        # a long random string: openssl rand -hex 24
+npx wrangler secret put CALENDAR_ICS_URL  # Google Calendar > Settings > your calendar >
+                                          # Integrate calendar > Secret address in iCal format
+npx wrangler secret put FAMILY_JSON       # see below
+```
+
+`CALENDAR_ICS_URL` is effectively a password: anyone holding it can read the whole calendar. It
+only ever lives as a Worker secret, never in the page, the app or this repository.
+
+`FAMILY_JSON` names the people, so no names are stored in the code:
+
+```json
+[
+  { "id": "p1", "name": "Ana", "match": ["ana"] },
+  { "id": "p2", "name": "Ben", "initial": "Be", "match": ["ben", "benjamin"] }
+]
+```
+
+`id` must be `p1` to `p4` (it ties a person to the chores and stars in the demo data). `match` is
+what an event title or note must contain to credit that person (default: the lower-cased name).
+`initial` overrides the avatar letter, handy when two names start with the same one.
+
+### Signing in
+
+Every request needs the access key. Open the site once with the key and the Worker sets a
+long-lived `HttpOnly` cookie:
+
+```
+https://<your-worker>.workers.dev/?key=<ACCESS_KEY>
+```
+
+Without it the site answers `401`. The key is never stored on the frame, only the cookie.
+
+### Run the tests
+
+```sh
+cd worker
+npm install
+npm test
+```
+
+## The kiosk app (Android frame)
+
+The kiosk is the HOME app: it opens the saved URL fullscreen on every boot and shows its own
+screen when the frame has no Wi-Fi. Hold two fingers still for 1.5 s to open its controls.
+See [`kiosk/README.md`](kiosk/README.md) for details.
+
+Build (needs JDK 17 and the Android SDK command-line tools):
+
+```sh
+brew install openjdk@17 && brew install --cask android-commandlinetools
+export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools
+sdkmanager --sdk_root=$ANDROID_HOME "build-tools;34.0.0" "platforms;android-34"
+bash kiosk/build.sh      # writes kiosk/build/homehq.apk
+```
+
+Install and point it at your site (the built-in default is the original author's demo):
+
+```sh
+adb install -r kiosk/build/homehq.apk
+adb shell am start -n com.wesbos.homehq/.MainActivity --es url 'https://<your-worker>.workers.dev/?key=<ACCESS_KEY>' --ez home true
+```
+
+The key in that URL is read once to set the cookie. Check afterwards that the saved URL (in the
+app's `shared_prefs/kiosk.xml`) is the plain address with no key.
+
+## Notes from setting up a frame
+
+Written down from a Runxion 10.1" (Frameo, RK3326, Android 8.1) so the next one is quicker.
+
+- **Power and data.** A computer's USB port cannot power a 10.1" frame; use its own adapter. If
+  the frame has one port for both, put a **powered USB hub** between it and the computer.
+- **ADB.** In Frameo: Settings > About > Beta Program (on) > ADB access (on). The Mac only sees
+  a Rockchip device (USB vendor `2207`) once the cable carries data. Accept the "Allow USB
+  debugging" prompt on the frame. `su 0 <cmd>` gives root without a prompt.
+- **WebView is the first thing to check.** This frame shipped WebView **61**; the dashboard is
+  built for Chromium **106** and failed with `Uncaught SyntaxError: Unexpected token =`, leaving a
+  blank page behind the static sidebar. Replacing `/system/app/webview/webview.apk` with a pinned
+  106 build (and extracting its `lib/arm/*.so`) fixed it. Keep the original as `webview.apk.bak`.
+- **Vendor software.** Check `pm list packages -f` and open connections (`netstat -tnp`) before
+  joining Wi-Fi. Frameo's updater (`com.adups.fota`) and `RKUpdateService` were disabled with
+  `pm disable-user`; Frameo itself was disabled once the kiosk became HOME. Disabling is
+  reversible; a factory reset re-enables everything.
+- **Stay offline until you have looked.** Other frames in this family ship a hidden root program
+  that connects to a remote server. Skip Wi-Fi in first-run setup and inspect first.
+
+## Privacy
+
+- No names, calendar links or keys are committed. Secrets live in Cloudflare; local copies, if
+  any, go in `.secrets/`, which is git-ignored.
+- Commit with a GitHub `noreply` address, not a personal one.
+- The whole site, including the static files, is behind the access key.
+
+## Credits and license
+
+Dashboard UI and the Android kiosk come from
+[Wes Bos's photo-frame-dashboard](https://github.com/wesbos/photo-frame-dashboard). MIT licensed;
+the original notice is kept in [`LICENSE`](LICENSE).
