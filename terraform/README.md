@@ -28,11 +28,44 @@ least `tofu plan`) so Terraform's state matches what's actually deployed.
   (cd ../dashboard && npm install && npm run build)   # -> dashboard/dist/
   ```
 
+## Remote state (Cloudflare R2)
+
+State lives in an R2 bucket (S3-compatible, free tier covers this easily) instead of a local
+file, so it's not sitting unencrypted on one laptop and isn't lost if that laptop is. One-time
+setup per account:
+
+```sh
+(cd ../dashboard && npx wrangler r2 bucket create tfstate)
+```
+
+If wrangler offers to add this bucket as a binding to `dashboard/wrangler.jsonc` (its "automatic
+resource provisioning" prompt), decline. This bucket is Terraform's state store only — the Worker
+itself has no reason to bind it, and adding it there just creates drift between two unrelated
+tools pointed at the same bucket name.
+
+Then create an R2 API token scoped to just that bucket: Dashboard > R2 > Manage API tokens >
+Create API token (Object Read & Write, this bucket only). That gives you an Access Key ID and
+Secret Access Key — export them, never write them to a file:
+
+```sh
+export AWS_ACCESS_KEY_ID=...
+export AWS_SECRET_ACCESS_KEY=...
+```
+
+```sh
+cp backend.hcl.example backend.hcl   # fill in the bucket name and account ID; git-ignored
+tofu init -backend-config=backend.hcl
+```
+
+`backend.hcl` holds no secrets, just where the bucket lives — it's separate from `versions.tf` so
+that file doesn't change when you reproduce this in a different account (only `backend.hcl` does).
+Locking uses R2's native conditional-write support (`use_lockfile`), so no DynamoDB-equivalent is
+needed.
+
 ## Use
 
 ```sh
 cp terraform.tfvars.example terraform.tfvars   # fill in; this file is git-ignored
-tofu init
 tofu plan
 tofu apply
 ```
@@ -40,11 +73,6 @@ tofu apply
 `terraform.tfvars` holds the access key, calendar URL, family JSON and lat/lon — all secrets.
 Keep it out of the repo (already git-ignored) or skip the file entirely and pass each as a
 `TF_VAR_<name>` environment variable instead.
-
-State is local (`terraform.tfstate`, git-ignored) by default, which is fine for a single person
-running this from one machine. If more than one of you will run `tofu apply`, add a `backend`
-block to `versions.tf` (e.g. an R2 bucket with the S3-compatible backend) so you share one state
-file instead of overwriting each other's.
 
 `tofu apply` prints `worker_url`. Open it once with `?key=<access_key>` appended to sign in, same
 as the wrangler flow — see "Signing in" in the root README.
