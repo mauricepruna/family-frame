@@ -47,8 +47,23 @@
       .catch(function () { /* keep what is showing */ });
   }
 
+  // Real photos from R2 replace the demo ones; with none uploaded the demo set stays.
+  function loadPhotos() {
+    fetch('/api/photos', { credentials: 'same-origin' })
+      .then(function (r) { if (!r.ok) throw new Error('photos ' + r.status); return r.json(); })
+      .then(function (list) {
+        if (!Array.isArray(list) || !list.length) return;
+        D.photos.length = 0;
+        list.forEach(function (p) { D.photos.push(p); });
+        App.emit('data');
+      })
+      .catch(function () { /* keep what is showing */ });
+  }
+
   load();
   setInterval(load, REFRESH);
   loadWeather();
   setInterval(loadWeather, 2 * REFRESH);
+  loadPhotos();
+  setInterval(loadPhotos, 6 * REFRESH);
 })();

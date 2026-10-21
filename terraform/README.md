@@ -82,3 +82,32 @@ as the wrangler flow — see "Signing in" in the root README.
 - Registering the account's workers.dev subdomain name (one-time, dashboard-only).
 - The kiosk Android app — it's a local build (`kiosk/build.sh`), not a Cloudflare resource.
 - Anything not yet real: photos, chores, shopping, home are still demo data (see root README).
+
+## Family photos (R2)
+
+`tofu apply` also creates the `family-frame-photos` R2 bucket and binds it to the Worker as
+`PHOTOS`. The API token needs *Workers R2 Storage: Edit* in addition to *Workers Scripts: Edit*.
+
+The screensaver, Photos view and home tile show whatever is in that bucket (the demo photos only
+appear while it's empty). Name files `YYYY-MM-DD_Place-Name[_p].jpg` — hyphens become spaces in the
+caption, `_p` marks a portrait shot, landscape is the default:
+
+```sh
+npx wrangler r2 object put family-frame-photos/2024-05-19_Humber-Bay-Park_p.jpg --file ./photo.jpg --remote
+```
+
+Photos are served through the Worker (`/photos/<name>`), so they sit behind the same access key —
+the bucket itself stays private. Resize to ~1600px wide before uploading; the tablet doesn't need
+originals.
+
+### Bulk upload from Google Photos
+
+Select the photos in Google Photos, download them (they arrive as a zip), unzip, then:
+
+```sh
+brew install exiftool
+just photos-upload ~/Downloads/fam-photos "Lake of Bays"   # place is optional
+```
+
+Names come from each photo's EXIF date and orientation (plus a `~HHMMSS` suffix so same-day shots
+don't collide). Photos without an EXIF date are skipped and listed.

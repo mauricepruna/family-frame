@@ -3,6 +3,12 @@ locals {
   assets_dir    = "${path.module}/../dashboard/dist"
 }
 
+# Family photos for the screensaver/slideshow. Upload files named YYYY-MM-DD_Place-Name[_p].jpg.
+resource "cloudflare_r2_bucket" "photos" {
+  account_id = var.cloudflare_account_id
+  name       = var.photos_bucket_name
+}
+
 # Built by `npm run build` in worker/ (esbuild) and dashboard/ (vite) — see README.md.
 # Terraform/OpenTofu only uploads what's already built; it doesn't run those builds itself.
 resource "cloudflare_workers_script" "family_frame" {
@@ -22,6 +28,7 @@ resource "cloudflare_workers_script" "family_frame" {
 
   bindings = [
     { name = "ASSETS", type = "assets" },
+    { name = "PHOTOS", type = "r2_bucket", bucket_name = cloudflare_r2_bucket.photos.name },
     { name = "ACCESS_KEY", type = "secret_text", text = var.access_key },
     { name = "CALENDAR_ICS_URL", type = "secret_text", text = var.calendar_ics_url },
     { name = "FAMILY_JSON", type = "secret_text", text = var.family_json },
