@@ -1,4 +1,6 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
+# Loads .env (repo root, git-ignored) into every recipe's environment — see .env.example
+set dotenv-load
 
 # List available recipes
 default:
@@ -47,9 +49,10 @@ build: worker-build dashboard-build
 
 # ---------------------------------------------------------------- terraform/opentofu (see terraform/README.md)
 
+# Needs backend.hcl first (see terraform/README.md's "Remote state" section)
 [working-directory('terraform')]
 tf-init:
-    tofu init
+    tofu init -backend-config=backend.hcl
 
 [working-directory('terraform')]
 tf-fmt:

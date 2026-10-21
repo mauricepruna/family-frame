@@ -1,0 +1,26 @@
+# Copy to backend.hcl (git-ignored) and fill in, then:
+#   tofu init -backend-config=backend.hcl
+#
+# bucket/key/endpoint are account-specific, which is why they're not in versions.tf directly —
+# that file stays the same when you reproduce this in a different account; only this file changes.
+#
+# Credentials do NOT go here. Export them as env vars before running tofu (R2 API token,
+# created at Dashboard > R2 > Manage API tokens, scoped to this one bucket):
+#   export AWS_ACCESS_KEY_ID=...
+#   export AWS_SECRET_ACCESS_KEY=...
+
+bucket = "tfstate"            # the R2 bucket you created for this (see README.md)
+key    = "family-frame/terraform.tfstate"
+region = "auto"
+
+endpoints = {
+  s3 = "https://<cloudflare_account_id>.r2.cloudflarestorage.com"
+}
+
+use_path_style               = true
+use_lockfile                 = true
+skip_credentials_validation  = true
+skip_region_validation       = true
+skip_requesting_account_id   = true
+skip_metadata_api_check      = true
+skip_s3_checksum             = true
