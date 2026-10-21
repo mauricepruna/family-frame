@@ -47,3 +47,9 @@ variable "home_latlon" {
   type        = string
   sensitive   = true
 }
+
+variable "photos_bucket_name" {
+  description = "R2 bucket holding the family photos shown by the slideshow/screensaver. Keep in sync with dashboard/wrangler.jsonc."
+  type        = string
+  default     = "family-frame-photos"
+}

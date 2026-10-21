@@ -68,7 +68,7 @@ tf-plan: build
 
 [working-directory('terraform')]
 tf-apply: build
-    tofu apply
+    tofu apply --auto-approve
 
 # ---------------------------------------------------------------- kiosk (Android app, see kiosk/README.md)
 
@@ -80,3 +80,9 @@ kiosk-build url='':
 [working-directory('kiosk')]
 kiosk-install:
     adb install -r build/homehq.apk
+
+# ---------------------------------------------------------------- photos
+
+# Uploads a folder of photos (e.g. downloaded from Google Photos) to R2, named from their EXIF date. Needs exiftool.
+photos-upload folder place='':
+    bash scripts/upload-photos.sh {{ folder }} {{ place }}
