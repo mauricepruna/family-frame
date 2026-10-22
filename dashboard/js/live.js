@@ -53,6 +53,10 @@
       .then(function (r) { if (!r.ok) throw new Error('photos ' + r.status); return r.json(); })
       .then(function (list) {
         if (!Array.isArray(list) || !list.length) return;
+        var sig = list.map(function (p) { return p.key; }).sort().join('|');
+        if (sig === D.photosSig) return;
+        D.photosSig = sig;
+        D.photosRev = (D.photosRev || 0) + 1; // slideshows rebuild their queue when this changes
         D.photos.length = 0;
         list.forEach(function (p) { D.photos.push(p); });
         App.emit('data');
@@ -65,5 +69,5 @@
   loadWeather();
   setInterval(loadWeather, 2 * REFRESH);
   loadPhotos();
-  setInterval(loadPhotos, 6 * REFRESH);
+  setInterval(loadPhotos, REFRESH);
 })();

@@ -83,7 +83,7 @@
     this.queue = q;
   };
   S.take = function (pred) {
-    if (!this.queue.length) this.refill();
+    if (!this.queue.length || this.rev !== D.photosRev) { this.rev = D.photosRev; this.refill(); }
     for (var i = 0; i < this.queue.length; i++) if (!pred || pred(this.queue[i])) return this.queue.splice(i, 1)[0];
     return null;
   };
@@ -137,12 +137,30 @@
     if (this.o.onChange) this.o.onChange(slide);
   };
 
+  // The file name's _p flag can be wrong (EXIF-rotated phone photos), so trust the decoded size.
+  function fixOrientation(photos, done) {
+    var pending = photos.filter(function (p) { return p.key && !p.sized; });
+    if (!pending.length) return done();
+    var left = pending.length, fired = false;
+    function finish() { if (fired) return; fired = true; done(); }
+    pending.forEach(function (p) {
+      var im = new Image();
+      im.onload = function () { p.o = im.naturalHeight > im.naturalWidth ? 'p' : 'l'; p.sized = true; if (!--left) finish(); };
+      im.onerror = function () { if (!--left) finish(); };
+      im.src = src(p, true);
+    });
+    setTimeout(finish, 2500);
+  }
+
   S.next = function () {
     var s = this.pick();
     if (!s) return;
-    if (this.current) this.history.push(this.current);
-    this.render(s);
-    this.restart();
+    var self = this;
+    fixOrientation(s.photos, function () {
+      if (self.current) self.history.push(self.current);
+      self.render(s);
+      self.restart();
+    });
   };
   S.prev = function () {
     if (!this.history.length) return;
