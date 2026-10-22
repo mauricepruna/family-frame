@@ -80,11 +80,16 @@ test('attribute also looks in the notes', () => {
 });
 
 test('attribute does not match inside other words', () => {
-  assert.deepEqual(attribute({ title: 'Dinaville trip' }, PEOPLE), ['p1', 'p2', 'p3', 'p4']);
+  assert.deepEqual(attribute({ title: 'Dinaville trip' }, PEOPLE), ['p1']);
 });
 
-test('unmatched events belong to the whole family', () => {
-  assert.deepEqual(attribute({ title: 'Garbage night' }, PEOPLE), ['p1', 'p2', 'p3', 'p4']);
+test('unmatched events default to p1', () => {
+  assert.deepEqual(attribute({ title: 'Garbage night' }, PEOPLE), ['p1']);
+});
+
+test('unmatched events go to everyone when p1 is not configured', () => {
+  const people = PEOPLE.filter((p) => p.id !== 'p1');
+  assert.deepEqual(attribute({ title: 'Garbage night' }, people), ['p2', 'p3', 'p4']);
 });
 
 test('a weekly zoned series keeps its local time across the DST change', () => {
