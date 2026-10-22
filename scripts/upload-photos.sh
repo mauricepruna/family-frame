@@ -3,7 +3,7 @@
 # Uploads every image in <folder> to the family-frame-photos R2 bucket, named
 # YYYY-MM-DD[_Place][_p][~HHMMSS].ext. Date comes from EXIF, else from a YYYYMMDD in the file name,
 # else from the file's modified date (with a warning).
-# Needs `brew install exiftool`. Resize first if they're huge: ~1600px wide is plenty for the frame.
+# Needs `brew install exiftool fd`. Resize first if they're huge: ~1600px wide is plenty for the frame.
 set -euo pipefail
 dir=${1:?usage: upload-photos.sh <folder> [place]}
 place=${2:+_${2// /-}}
