@@ -118,7 +118,7 @@ __METHOD__
 }
 '''
 
-with tempfile.TemporaryDirectory(prefix="homehq-navigation-") as directory:
+with tempfile.TemporaryDirectory(prefix="familyframe-navigation-") as directory:
     root = Path(directory)
     java = root / "NavigationHarness.java"
     java.write_text(HARNESS.replace("__METHOD__", method), encoding="utf-8")
