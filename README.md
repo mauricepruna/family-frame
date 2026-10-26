@@ -120,7 +120,7 @@ KIOSK_URL=https://<your-worker>.workers.dev/ bash kiosk/build.sh   # writes kios
 
 `KIOSK_URL` bakes your site in as the address a fresh or reset frame opens. It is substituted in
 a build copy only, so the repository never contains your address. Leave it out and the app opens
-the original author's demo. Never put the access key in it.
+the placeholder `https://your-worker.workers.dev/` until you save a URL with `adb` (below). Never put the access key in it.
 
 Install, then sign in in two steps. Do **not** put the key in the saved URL: the app stores that
 verbatim, so the key would sit in plain text on the frame.
@@ -168,4 +168,4 @@ Written down from a Runxion 10.1" (Frameo, RK3326, Android 8.1) so the next one 
 
 Dashboard UI and the Android kiosk come from
 [Wes Bos's photo-frame-dashboard](https://github.com/wesbos/photo-frame-dashboard). MIT licensed;
-the original notice is kept in [`LICENSE`](LICENSE).
+the original notice is kept in [`LICENSE`](LICENSE), with this fork's copyright added below it.
