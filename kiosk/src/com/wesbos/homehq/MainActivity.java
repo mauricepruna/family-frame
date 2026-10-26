@@ -62,7 +62,7 @@ import java.util.Map;
  */
 public class MainActivity extends Activity {
   static final String TAG = "HomeHQ";
-  static final String DEFAULT_URL = "https://home-dashboard.wesbos.workers.dev/";
+  static final String DEFAULT_URL = "https://your-worker.workers.dev/";
   static final String PREFS = "kiosk";
   static final String PREF_URL = "url";
   static final long EXIT_HOLD_MS = 1500;
