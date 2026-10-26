@@ -9,14 +9,14 @@ import subprocess
 import tempfile
 
 
-SOURCE = Path(__file__).resolve().parent / "src/com/wesbos/homehq/MainActivity.java"
+SOURCE = Path(__file__).resolve().parent / "src/app/familyframe/MainActivity.java"
 text = SOURCE.read_text(encoding="utf-8")
 start = text.index("  private void keepNavigationEnabled() {")
 end = text.index("\n  private void openLauncher()", start)
 method = text[start:end]
 
 HARNESS = r'''
-package com.wesbos.homehq;
+package app.familyframe;
 import java.util.Objects;
 
 class NavigationService { static boolean isConnected() { return true; } }
@@ -73,12 +73,12 @@ public class NavigationHarness {
   static final long NAV_REBIND_MS = 1000;
   final Handler handler = new Handler();
   final Handler rebindHandler = new Handler();
-  static final String OWN = "com.wesbos.homehq/com.wesbos.homehq.NavigationService";
-  static final String SHORT = "com.wesbos.homehq/.NavigationService";
+  static final String OWN = "app.familyframe/app.familyframe.NavigationService";
+  static final String SHORT = "app.familyframe/.NavigationService";
   static final String OTHER = "example.other/.NavigationService";
   int permission;
   int checkSelfPermission(String value) { return permission; }
-  String getPackageName() { return "com.wesbos.homehq"; }
+  String getPackageName() { return "app.familyframe"; }
   Object getContentResolver() { return null; }
 
 __METHOD__
@@ -124,5 +124,5 @@ with tempfile.TemporaryDirectory(prefix="homehq-navigation-") as directory:
     java.write_text(HARNESS.replace("__METHOD__", method), encoding="utf-8")
     subprocess.run(["javac", "--release", "8", "-d", str(root), str(java)],
                    check=True, timeout=30)
-    subprocess.run(["java", "-cp", str(root), "com.wesbos.homehq.NavigationHarness"],
+    subprocess.run(["java", "-cp", str(root), "app.familyframe.NavigationHarness"],
                    check=True, timeout=30)

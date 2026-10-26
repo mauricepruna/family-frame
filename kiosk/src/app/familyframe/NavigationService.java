@@ -1,4 +1,4 @@
-package com.wesbos.homehq;
+package app.familyframe;
 
 import android.accessibilityservice.AccessibilityService;
 import android.content.Intent;

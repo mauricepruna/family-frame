@@ -1,4 +1,4 @@
-package com.wesbos.homehq;
+package app.familyframe;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -51,14 +51,14 @@ import java.util.Map;
  *   prints the full URL, including any token in it). With no Wi-Fi it offers Wi-Fi settings.
  * - Remote debugging is OFF unless launched with the debug extra (every app on this device
  *   gets root, so the devtools socket should only exist while actively debugging):
- *     adb shell am start -n com.wesbos.homehq/.MainActivity --ez debug true
- * - Launch with a URL: adb shell am start -a android.intent.action.VIEW -d <url> -n com.wesbos.homehq/.MainActivity
- * - Set the saved URL, used on every later launch: adb shell am start -n com.wesbos.homehq/.MainActivity --es url <url>
+ *     adb shell am start -n app.familyframe/.MainActivity --ez debug true
+ * - Launch with a URL: adb shell am start -a android.intent.action.VIEW -d <url> -n app.familyframe/.MainActivity
+ * - Set the saved URL, used on every later launch: adb shell am start -n app.familyframe/.MainActivity --es url <url>
  * - A site bundled at build time (KIOSK_SITE) is answered at http://127.0.0.1:8765/ from the
  *   APK's assets/site/, with no server; every other URL goes to the network as usual.
  * - Offer the kiosk as a Home app (--ez home false undoes it), then pick it:
- *     adb shell am start -n com.wesbos.homehq/.MainActivity --ez home true
- *     adb shell cmd package set-home-activity com.wesbos.homehq/.Home
+ *     adb shell am start -n app.familyframe/.MainActivity --ez home true
+ *     adb shell cmd package set-home-activity app.familyframe/.Home
  */
 public class MainActivity extends Activity {
   static final String TAG = "HomeHQ";
@@ -420,7 +420,7 @@ public class MainActivity extends Activity {
    * Some frames (PF1007L) run a vendor BackgroundManagerService that drops the navigation service
    * after the kiosk is updated or force-stopped, leaving no way back from Settings. If the owner
    * opted in by granting WRITE_SECURE_SETTINGS, put the service back on the enabled list:
-   *   adb shell pm grant com.wesbos.homehq android.permission.WRITE_SECURE_SETTINGS
+   *   adb shell pm grant app.familyframe android.permission.WRITE_SECURE_SETTINGS
    * Android 6 also leaves the service listed but unbound after the kiosk's process is killed (the
    * Denver PFF-1015's low-RAM mode kills it on every app switch), so rebind it if it isn't running.
    */

@@ -16,7 +16,7 @@ closer fingers as one touch.
 The kiosk opens the hosted demo dashboard by default. To show your own, save its URL once:
 
 ```sh
-adb shell am start -n com.wesbos.homehq/.MainActivity --es url https://your-dashboard/
+adb shell am start -n app.familyframe/.MainActivity --es url https://your-dashboard/
 ```
 
 `scripts/set-kiosk-url.sh <url>` from the repository root does the same, and prints the saved
@@ -33,7 +33,7 @@ folder that has an `index.html` (from `dashboard/`):
 ```sh
 KIOSK_SITE=/path/to/site ANDROID_HOME=/path/to/android-sdk bash kiosk/build.sh
 adb install -r kiosk/build/homehq.apk
-adb shell am start -n com.wesbos.homehq/.MainActivity --es url 'http://127.0.0.1:8765/'
+adb shell am start -n app.familyframe/.MainActivity --es url 'http://127.0.0.1:8765/'
 ```
 
 On Windows, set `$env:KIOSK_SITE` before `.\build.ps1`.
@@ -55,8 +55,8 @@ To have the frame boot into the dashboard, make the kiosk its Home app. Installi
 does not offer it as a Home app, so nothing changes until you run:
 
 ```sh
-adb shell am start -n com.wesbos.homehq/.MainActivity --ez home true
-adb shell cmd package set-home-activity com.wesbos.homehq/.Home
+adb shell am start -n app.familyframe/.MainActivity --ez home true
+adb shell cmd package set-home-activity app.familyframe/.Home
 ```
 
 Wait about 30 seconds before rebooting. Android saves the Home alias a few seconds later, and on
@@ -113,7 +113,7 @@ buttons silently disappeared. To have Home HQ put the service back each time it 
 it this permission once:
 
 ```sh
-adb shell pm grant com.wesbos.homehq android.permission.WRITE_SECURE_SETTINGS
+adb shell pm grant app.familyframe android.permission.WRITE_SECURE_SETTINGS
 ```
 
 With the grant, Home HQ also rebinds the service if it is still listed but not running, which is
@@ -135,7 +135,7 @@ Keep an ADB connection available while enabling the service on a frame with no
 other way back. If needed, return to the kiosk with:
 
 ```sh
-adb shell am start -n com.wesbos.homehq/.MainActivity
+adb shell am start -n app.familyframe/.MainActivity
 ```
 
 This service supplies navigation controls only. To start the dashboard at boot,
@@ -173,8 +173,8 @@ After changing the frame's time zone over ADB (`setprop persist.sys.timezone <zo
 while `date` on the frame already shows the new one:
 
 ```sh
-adb shell am force-stop com.wesbos.homehq
-adb shell am start -n com.wesbos.homehq/.MainActivity
+adb shell am force-stop app.familyframe
+adb shell am start -n app.familyframe/.MainActivity
 ```
 
 Seen on an Android 6 Runxion (WebView 107). Changing the zone in Android Settings has not been

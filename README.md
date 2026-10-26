@@ -128,9 +128,9 @@ verbatim, so the key would sit in plain text on the frame.
 ```sh
 adb install -r kiosk/build/homehq.apk
 # 1. save the plain address (not needed if you built with KIOSK_URL)
-adb shell am start -n com.wesbos.homehq/.MainActivity --es url 'https://<your-worker>.workers.dev/' --ez home true
+adb shell am start -n app.familyframe/.MainActivity --es url 'https://<your-worker>.workers.dev/' --ez home true
 # 2. open the key link once. A VIEW link is shown but not saved; the site's cookie remembers you
-adb shell am start -a android.intent.action.VIEW -d 'https://<your-worker>.workers.dev/?key=<ACCESS_KEY>' -n com.wesbos.homehq/.MainActivity
+adb shell am start -a android.intent.action.VIEW -d 'https://<your-worker>.workers.dev/?key=<ACCESS_KEY>' -n app.familyframe/.MainActivity
 ```
 
 Check afterwards that `shared_prefs/kiosk.xml` holds the plain address with no key (or doesn't
