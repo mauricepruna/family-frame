@@ -72,10 +72,15 @@ export function parseEvents(text, { from, to }) {
     .sort((a, b) => a.start.localeCompare(b.start));
 }
 
+// Events that name nobody go to this person (p1, Danelia) instead of the whole family.
+const DEFAULT_OWNER = 'p1';
+
 export function attribute(event, people) {
   const text = `${event.title || ''} ${event.notes || ''}`.toLowerCase();
   const hit = people.filter((p) =>
     p.match.some((name) => new RegExp(`(^|[^\\p{L}])${name.toLowerCase()}($|[^\\p{L}])`, 'u').test(text))
   );
-  return (hit.length ? hit : people).map((p) => p.id);
+  if (hit.length) return hit.map((p) => p.id);
+  // Fall back to everyone only if the default owner isn't configured.
+  return people.some((p) => p.id === DEFAULT_OWNER) ? [DEFAULT_OWNER] : people.map((p) => p.id);
 }

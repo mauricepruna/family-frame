@@ -1,5 +1,6 @@
 import { parseEvents, attribute } from './calendar.js';
 import { getPeople, publicPeople, DEFAULT_PEOPLE } from './family.js';
+import { toPhotoList, photoKey } from './photos.js';
 import { parseLocation, forecastUrl, toDashboardWeather } from './weather.js';
 
 const COOKIE = 'ff_key';
@@ -52,6 +53,27 @@ async function weather(env) {
   }
 }
 
+async function listPhotos(env) {
+  const keys = [];
+  let cursor;
+  do {
+    const page = await env.PHOTOS.list({ cursor });
+    page.objects.forEach((o) => keys.push(o.key));
+    cursor = page.truncated ? page.cursor : undefined;
+  } while (cursor);
+  return Response.json(toPhotoList(keys), { headers: { 'Cache-Control': 'no-store' } });
+}
+
+async function servePhoto(env, key) {
+  const obj = await env.PHOTOS.get(key);
+  if (!obj) return new Response('Not found', { status: 404 });
+  const headers = new Headers();
+  obj.writeHttpMetadata(headers);
+  headers.set('ETag', obj.httpEtag);
+  headers.set('Cache-Control', 'private, max-age=86400');
+  return new Response(obj.body, { headers });
+}
+
 export default {
   async fetch(request, env) {
     if (!env.ACCESS_KEY) return new Response('ACCESS_KEY is not configured', { status: 500 });
@@ -77,6 +99,11 @@ export default {
       return calendar(env);
     }
     if (url.pathname === '/api/weather') return weather(env);
+    if (url.pathname === '/api/photos') return env.PHOTOS ? listPhotos(env) : Response.json([]);
+    if (url.pathname.startsWith('/photos/')) {
+      const key = env.PHOTOS && photoKey(url.pathname);
+      return key ? servePhoto(env, key) : new Response('Not found', { status: 404 });
+    }
     return env.ASSETS.fetch(request);
   }
 };

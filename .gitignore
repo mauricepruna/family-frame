@@ -3,6 +3,7 @@ dist/
 .wrangler/
 kiosk/build/
 .dev.vars
+.env
 *.apk
 backups/
 .secrets/
