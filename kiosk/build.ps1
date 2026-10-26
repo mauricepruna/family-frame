@@ -1,9 +1,9 @@
-# Windows equivalent of build.sh. Builds kiosk\build\homehq.apk without Gradle.
+# Windows equivalent of build.sh. Builds kiosk\build\familyframe.apk without Gradle.
 # Needs a JDK 17 and Android build-tools 34 + platform 34 (see build.sh for the sdkmanager line).
 #   .\build.ps1
 # If Windows blocks the unsigned script, run it once with:
 #   powershell -ExecutionPolicy Bypass -File .\build.ps1
-# Install on the tablet: adb install -r build\homehq.apk
+# Install on the tablet: adb install -r build\familyframe.apk
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 
@@ -55,5 +55,5 @@ if (-not (Test-Path $ks)) {
   Run 'keytool' @('-genkeypair', '-keystore', $ks, '-storepass', 'android', '-keypass', 'android', '-alias', 'androiddebugkey',
     '-keyalg', 'RSA', '-keysize', '2048', '-validity', '10000', '-dname', 'CN=Android Debug,O=Android,C=US')
 }
-Run "$bt\apksigner.bat" @('sign', '--ks', $ks, '--ks-pass', 'pass:android', '--key-pass', 'pass:android', '--out', 'build\homehq.apk', 'build\aligned.apk')
-Write-Output "Built kiosk\build\homehq.apk"
+Run "$bt\apksigner.bat" @('sign', '--ks', $ks, '--ks-pass', 'pass:android', '--key-pass', 'pass:android', '--out', 'build\familyframe.apk', 'build\aligned.apk')
+Write-Output "Built kiosk\build\familyframe.apk"

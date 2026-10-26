@@ -72,14 +72,14 @@ tf-apply: build
 
 # ---------------------------------------------------------------- kiosk (Android app, see kiosk/README.md)
 
-# Builds kiosk/build/homehq.apk. Pass url=https://your-worker.workers.dev/ to bake in a default URL
+# Builds kiosk/build/familyframe.apk. Pass url=https://your-worker.workers.dev/ to bake in a default URL
 [working-directory('kiosk')]
 kiosk-build url=env('KIOSK_URL', ''):
     KIOSK_URL={{ url }} bash build.sh
 
 [working-directory('kiosk')]
 kiosk-install:
-    adb install -r build/homehq.apk
+    adb install -r build/familyframe.apk
 
 # Signs the frame in: opens the key link once so the Worker sets its cookie. The key is not saved on the frame.
 kiosk-signin url=env('KIOSK_URL') key=env('ACCESS_KEY'):

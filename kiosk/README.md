@@ -32,7 +32,7 @@ folder that has an `index.html` (from `dashboard/`):
 
 ```sh
 KIOSK_SITE=/path/to/site ANDROID_HOME=/path/to/android-sdk bash kiosk/build.sh
-adb install -r kiosk/build/homehq.apk
+adb install -r kiosk/build/familyframe.apk
 adb shell am start -n app.familyframe/.MainActivity --es url 'http://127.0.0.1:8765/'
 ```
 
@@ -195,7 +195,7 @@ Use JDK 17, Android build-tools 34.0.0, and platform 34. From `dashboard/`:
 
 ```sh
 ANDROID_HOME=/path/to/android-sdk bash kiosk/build.sh
-adb install -r kiosk/build/homehq.apk
+adb install -r kiosk/build/familyframe.apk
 ```
 
 The kiosk loads the existing hosted dashboard over the frame's Wi-Fi. A USB

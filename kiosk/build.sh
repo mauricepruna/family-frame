@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Builds kiosk/build/homehq.apk without Gradle. Needs JDK 17 + Android build-tools 34 + platform 34:
+# Builds kiosk/build/familyframe.apk without Gradle. Needs JDK 17 + Android build-tools 34 + platform 34:
 #   brew install --cask android-commandlinetools
 #   sdkmanager --sdk_root=$ANDROID_HOME "build-tools;34.0.0" "platforms;android-34"
-# Install on the tablet: adb install -r kiosk/build/homehq.apk
+# Install on the tablet: adb install -r kiosk/build/familyframe.apk
 # Optional: KIOSK_SITE=<dir> bundles a static site, served at http://127.0.0.1:8765/ (README).
 # Optional: KIOSK_URL=https://your-site/ sets the URL a fresh install opens (no key in it).
 set -euo pipefail
@@ -57,5 +57,5 @@ if [ ! -f "$KS" ]; then
   keytool -genkeypair -keystore "$KS" -storepass android -keypass android -alias androiddebugkey \
     -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" >/dev/null 2>&1
 fi
-"$BT/apksigner" sign --ks "$KS" --ks-pass pass:android --key-pass pass:android --out build/homehq.apk build/aligned.apk
-echo "Built kiosk/build/homehq.apk"
+"$BT/apksigner" sign --ks "$KS" --ks-pass pass:android --key-pass pass:android --out build/familyframe.apk build/aligned.apk
+echo "Built kiosk/build/familyframe.apk"

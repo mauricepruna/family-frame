@@ -115,7 +115,7 @@ Build (needs JDK 17 and the Android SDK command-line tools):
 brew install openjdk@17 && brew install --cask android-commandlinetools
 export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools
 sdkmanager --sdk_root=$ANDROID_HOME "build-tools;34.0.0" "platforms;android-34"
-KIOSK_URL=https://<your-worker>.workers.dev/ bash kiosk/build.sh   # writes kiosk/build/homehq.apk
+KIOSK_URL=https://<your-worker>.workers.dev/ bash kiosk/build.sh   # writes kiosk/build/familyframe.apk
 ```
 
 `KIOSK_URL` bakes your site in as the address a fresh or reset frame opens. It is substituted in
@@ -126,7 +126,7 @@ Install, then sign in in two steps. Do **not** put the key in the saved URL: the
 verbatim, so the key would sit in plain text on the frame.
 
 ```sh
-adb install -r kiosk/build/homehq.apk
+adb install -r kiosk/build/familyframe.apk
 # 1. save the plain address (not needed if you built with KIOSK_URL)
 adb shell am start -n app.familyframe/.MainActivity --es url 'https://<your-worker>.workers.dev/' --ez home true
 # 2. open the key link once. A VIEW link is shown but not saved; the site's cookie remembers you
