@@ -14,3 +14,4 @@ import './views/agents.js';
 import './views/ambient.js';
 import './diag.js';
 import './live.js';
+import './doorbell.js';

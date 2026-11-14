@@ -1,0 +1,10 @@
+# eufy-security-ws only. Run ring-forwarder.mjs on the host (needs ffmpeg and Node 22+).
+# NOTE: bropat/eufy-security-ws was archived Sep 2026; pin a working tag instead of :latest once you have one.
+services:
+  eufy-ws:
+    image: bropat/eufy-security-ws:latest
+    restart: unless-stopped
+    ports: ["127.0.0.1:3000:3000"]  # host networking does not reach macOS localhost on Docker Desktop
+    environment:
+      USERNAME: ${EUFY_USER}
+      PASSWORD: ${EUFY_PASS}

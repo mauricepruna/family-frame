@@ -1,6 +1,7 @@
 import { parseEvents, attribute } from './calendar.js';
 import { getPeople, publicPeople, DEFAULT_PEOPLE } from './family.js';
 import { toPhotoList, photoKey } from './photos.js';
+import { RING_KEY, bearer, toDoorbellState } from './doorbell.js';
 import { parseLocation, forecastUrl, toDashboardWeather } from './weather.js';
 
 const COOKIE = 'ff_key';
@@ -74,10 +75,27 @@ async function servePhoto(env, key) {
   return new Response(obj.body, { headers });
 }
 
+async function doorbellRing(request, env) {
+  // The home bridge cannot hold the browser cookie, so it has its own token.
+  if (!env.DOORBELL_TOKEN || !env.PHOTOS || !(await sameSecret(bearer(request), env.DOORBELL_TOKEN))) {
+    return new Response('Not allowed', { status: 401 });
+  }
+  await env.PHOTOS.put(RING_KEY, JSON.stringify({ at: Date.now() }));
+  return new Response(null, { status: 204 });
+}
+
+async function doorbellState(env) {
+  const obj = env.PHOTOS && (await env.PHOTOS.get(RING_KEY));
+  const at = obj ? (await obj.json()).at : undefined;
+  return Response.json(toDoorbellState(at, env.DOORBELL_STREAM_URL), { headers: { 'Cache-Control': 'no-store' } });
+}
+
 export default {
   async fetch(request, env) {
     if (!env.ACCESS_KEY) return new Response('ACCESS_KEY is not configured', { status: 500 });
     const url = new URL(request.url);
+
+    if (url.pathname === '/api/doorbell/ring' && request.method === 'POST') return doorbellRing(request, env);
 
     const offered = url.searchParams.get('key');
     if (offered && (await sameSecret(offered, env.ACCESS_KEY))) {
@@ -98,6 +116,7 @@ export default {
       if (!env.CALENDAR_ICS_URL) return Response.json({ error: 'CALENDAR_ICS_URL is not configured' }, { status: 500 });
       return calendar(env);
     }
+    if (url.pathname === '/api/doorbell') return doorbellState(env);
     if (url.pathname === '/api/weather') return weather(env);
     if (url.pathname === '/api/photos') return env.PHOTOS ? listPhotos(env) : Response.json([]);
     if (url.pathname.startsWith('/photos/')) {
