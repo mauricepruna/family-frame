@@ -35,6 +35,11 @@ export function splitJpegs(state, chunk) { // pulls whole JPEGs (FFD8..FFD9) out
   return frames;
 }
 
+// True when the camera has sent no video for `gap` ms (or never): the P2P stream failed to start or was dropped.
+export function streamStalled(lastChunk, now, gap = 4000) {
+  return now - lastChunk > gap;
+}
+
 const LIVE_MS = 60 * 1000;
 
 async function main() {
@@ -43,7 +48,7 @@ async function main() {
     throw new Error('WORKER_URL, DOORBELL_TOKEN, DOORBELL_SERIAL and STREAM_TOKEN are required');
   }
   const clients = new Set();
-  let ffmpeg = null, stopTimer = null, ws = null, lastRing = 0;
+  let ffmpeg = null, stopTimer = null, retryTimer = null, ws = null, lastRing = 0, lastChunk = 0, startedAt = 0;
 
   const send = (command, extra = {}) => ws && ws.readyState === 1 &&
     ws.send(JSON.stringify({ messageId: command + Date.now(), command, serialNumber: DOORBELL_SERIAL, ...extra }));
@@ -52,7 +57,12 @@ async function main() {
     clearTimeout(stopTimer);
     stopTimer = setTimeout(stopVideo, LIVE_MS);
     if (ffmpeg) return;
+    lastChunk = 0; startedAt = Date.now();
+    console.log('livestream: start requested');
     send('device.start_livestream');
+    // A ring wakes the doorbell and the Eufy app grabs a stream too, so the first start can silently fail.
+    // Ask again every few seconds until video actually flows.
+    retryTimer = setInterval(() => { if (streamStalled(lastChunk, Date.now())) { console.log('livestream: no video yet, retrying'); send('device.start_livestream'); } }, 4000);
     ffmpeg = spawn('ffmpeg', ['-loglevel', 'error', '-f', 'h264', '-i', 'pipe:0',
       '-vf', 'fps=8,scale=-2:480', '-q:v', '7', '-f', 'image2pipe', '-c:v', 'mjpeg', 'pipe:1']);
     const st = { rest: Buffer.alloc(0) };
@@ -61,9 +71,12 @@ async function main() {
       res.write(f); res.write('\r\n');
     })));
     ffmpeg.stdin.on('error', () => {});
+    ffmpeg.on('error', (err) => { console.error('ffmpeg failed:', err.message); ffmpeg = null; });
     ffmpeg.on('close', () => { ffmpeg = null; });
   }
   function stopVideo() {
+    clearInterval(retryTimer);
+    console.log('livestream: stop');
     send('device.stop_livestream');
     if (ffmpeg) { ffmpeg.stdin.end(); ffmpeg.kill(); }
     ffmpeg = null;
@@ -87,7 +100,7 @@ async function main() {
     ws.onmessage = async (ev) => {
       let msg; try { msg = JSON.parse(ev.data); } catch { return; }
       const v = videoChunk(msg, DOORBELL_SERIAL);
-      if (v) { if (ffmpeg) ffmpeg.stdin.write(v); return; }
+      if (v) { if (!lastChunk) console.log(`livestream: first video data after ${Date.now() - startedAt} ms`); lastChunk = Date.now(); if (ffmpeg) ffmpeg.stdin.write(v); return; }
       if (!isRing(msg, DOORBELL_SERIAL) || Date.now() - lastRing < 5000) return;
       lastRing = Date.now();
       startVideo(); // begin the stream before the frame asks for it

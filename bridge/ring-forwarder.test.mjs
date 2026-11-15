@@ -34,3 +34,11 @@ test('splitJpegs extracts whole frames and keeps the partial tail', () => {
   assert.equal(more.length, 1);
   assert.deepEqual([...more[0]], [0xff, 0xd8, 3, 4, 0xff, 0xd9]);
 });
+
+import { streamStalled } from './ring-forwarder.mjs';
+
+test('stream counts as stalled when no video arrived recently', () => {
+  assert.equal(streamStalled(0, 10000), true);      // never received anything
+  assert.equal(streamStalled(8000, 10000), false);  // fresh data 2s ago
+  assert.equal(streamStalled(5000, 10000), true);   // 5s of silence, over the 4s gap
+});

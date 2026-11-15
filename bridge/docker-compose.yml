@@ -5,6 +5,7 @@ services:
     image: bropat/eufy-security-ws:latest
     restart: unless-stopped
     ports: ["127.0.0.1:3000:3000"]  # host networking does not reach macOS localhost on Docker Desktop
+    volumes: ["./eufy-data:/data"]  # keeps the Eufy login across container recreation (no repeat 2FA)
     environment:
       USERNAME: ${EUFY_USER}
       PASSWORD: ${EUFY_PASS}
