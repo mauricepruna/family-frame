@@ -37,8 +37,19 @@ test('splitJpegs extracts whole frames and keeps the partial tail', () => {
 
 import { streamStalled } from './ring-forwarder.mjs';
 
-test('stream counts as stalled when no video arrived recently', () => {
-  assert.equal(streamStalled(0, 10000), true);      // never received anything
-  assert.equal(streamStalled(8000, 10000), false);  // fresh data 2s ago
-  assert.equal(streamStalled(5000, 10000), true);   // 5s of silence, over the 4s gap
+test('stream stall: first video gets a generous grace period, a flowing stream a short one', () => {
+  // never received video: stalled only after 8 s from the start request
+  assert.equal(streamStalled(0, 1000, 8000), false);   // 7 s in
+  assert.equal(streamStalled(0, 1000, 10000), true);   // 9 s in
+  // video was flowing: stalled after 5 s of silence
+  assert.equal(streamStalled(8000, 1000, 10000), false); // 2 s of silence
+  assert.equal(streamStalled(5000, 1000, 11000), true);  // 6 s of silence
+});
+
+import { originOf } from './ring-forwarder.mjs';
+
+test('CORS origin is the Worker origin only, never a wildcard or a path', () => {
+  assert.equal(originOf('https://family-frame.example.workers.dev/some/path?x=1'), 'https://family-frame.example.workers.dev');
+  assert.equal(originOf('not a url'), '');
+  assert.equal(originOf(undefined), '');
 });
