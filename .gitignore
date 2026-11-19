@@ -7,3 +7,4 @@ kiosk/build/
 *.apk
 backups/
 .secrets/
+bridge/eufy-data/

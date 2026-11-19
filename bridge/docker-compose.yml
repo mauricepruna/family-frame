@@ -1,0 +1,16 @@
+# eufy-security-ws only. Run ring-forwarder.mjs on the host (needs ffmpeg and Node 22+).
+# NOTE: bropat/eufy-security-ws was archived Sep 2026; pin a working tag instead of :latest once you have one.
+services:
+  eufy-ws:
+    image: bropat/eufy-security-ws:latest
+    restart: unless-stopped
+    # macOS Docker Desktop: host networking does not reach localhost, so publish the port (localhost only).
+    # Linux (e.g. the Pi): replace this line with `network_mode: host` and block the port from the LAN
+    # (see docs/raspberry-pi-migration.md), because the image always listens on 0.0.0.0.
+    # Set EUFY_PORT in .env to avoid the common default 3000 (also set EUFY_WS=ws://localhost:<port>).
+    ports: ["127.0.0.1:${EUFY_PORT:-3000}:${EUFY_PORT:-3000}"]
+    volumes: ["./eufy-data:/data"]  # keeps the Eufy login across container recreation (no repeat 2FA)
+    environment:
+      PORT: ${EUFY_PORT:-3000}
+      USERNAME: ${EUFY_USER}
+      PASSWORD: ${EUFY_PASS}
